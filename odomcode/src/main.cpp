@@ -48,6 +48,10 @@ int PreviousL = 0;
 int PreviousR = 0;
 int PreviousB = 0;
 
+double hubX = 123;
+double hubY = 123;
+double hubDistance = 0;
+
 double DeltaTheta = 0;
 double DeltaXBack = 0;
 double DeltaYBack = 0;
@@ -92,24 +96,24 @@ void TrackPOS() {
 // Since this calculation is working based of very infinitely small arcs, the displacement of the robot will be a chord
 // Below it Averages the Left and Right integrated motor encoders since we don't have encoders yet
 
-  // if (!getRightEncoderDegrees(currentR) || !getLeftEncoderDegrees(currentL) || !getRearEncoderDegrees(currentB))
-  // {
-  //   std::cout << "Invalid Encoder Output!" << std::endl;
-  //   return;
-  // }
+  if (!getRightEncoderDegrees(currentR) || !getLeftEncoderDegrees(currentL) || !getRearEncoderDegrees(currentB))
+  {
+    //std::cout << "Invalid Encoder Output!" << std::endl;
+    return;
+  }
 
   //Creates variables for change in each side info in inches (12.9590697 is circumference of wheel)
   DeltaL = ((double)(currentL - PreviousL) * 12.9590697) / tpr;
   DeltaR = ((double)(currentR - PreviousR) * 12.9590697) / tpr;
   DeltaB = ((double)(currentB - PreviousB) * 12.9590697) / tpr;
   
-  Theta = Gyro.heading(degrees) / 180 * Pi;
+  Theta = Gyro.heading(rotationUnits::deg) / 180.0 * Pi;
 
   double DeltaAverage = (DeltaL + DeltaR) / 2.0;
   X += DeltaAverage * sin(Theta);
   Y += DeltaAverage * cos(Theta);
-  X += DeltaB * sin(Theta + (Pi / 2.0));
-  Y += DeltaB * cos(Theta + (Pi / 2.0));
+  // X += DeltaB * sin(Theta + (Pi / 2.0));
+  // Y += DeltaB * cos(Theta + (Pi / 2.0));
 
   //Odom heading is converting the radian value of Theta into degrees
   OdomHeading = Theta * 57.295779513;
@@ -118,6 +122,13 @@ void TrackPOS() {
   PreviousL = currentL;
   PreviousR = currentR;
   PreviousB = currentB;
+
+  double hubTheta = atan2(hubY-Y, hubX-X);
+  hubDistance = sqrt(pow(hubY-Y, 2) + pow(hubX-X, 2));
+  std::cout <<"Theta: " << Theta << std::endl;
+  std::cout <<"hubTheta: " << hubTheta*180/Pi << std::endl;
+  std::cout <<"hubDistance: " << hubDistance << std::endl; 
+  std::cout <<"x: " << X << " y: " << Y << std::endl; 
 
   /*--------------------GRAPHICS--------------------*/
     //Coordinates for each section of text
