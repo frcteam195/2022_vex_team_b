@@ -11,6 +11,7 @@ extern controller Controller1;
 extern encoder EncoderC;
 extern encoder EncoderE;
 extern encoder EncoderG;
+extern inertial Gyro;
 
 /**
  * Used to initialize code/tasks/devices added using tools in VEXcode Pro.

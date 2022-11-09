@@ -9,11 +9,15 @@
 // ---- START VEXCODE CONFIGURED DEVICES ----
 // Robot Configuration:
 // [Name]               [Type]        [Port(s)]
-// RightFront           motor         18
-// RightBack            motor         17
-// LeftFront            motor         20
-// LeftBack             motor         14
-// Controller1          controller
+// RightBack            motor         9               
+// RightFront           motor         10              
+// LeftFront            motor         1               
+// LeftBack             motor         2               
+// Controller1          controller                    
+// EncoderC             encoder       C, D            
+// EncoderE             encoder       E, F            
+// EncoderG             encoder       G, H            
+// Gyro                 inertial      16              
 // ---- END VEXCODE CONFIGURED DEVICES ----
 
 #include "vex.h"
@@ -88,104 +92,33 @@ void TrackPOS() {
 // Since this calculation is working based of very infinitely small arcs, the displacement of the robot will be a chord
 // Below it Averages the Left and Right integrated motor encoders since we don't have encoders yet
 
-  if (!getRightEncoderDegrees(currentR) || !getLeftEncoderDegrees(currentL) || !getRearEncoderDegrees(currentB))
-  {
-    std::cout << "Invalid Encoder Output!" << std::endl;
-    return;
-  }
+  // if (!getRightEncoderDegrees(currentR) || !getLeftEncoderDegrees(currentL) || !getRearEncoderDegrees(currentB))
+  // {
+  //   std::cout << "Invalid Encoder Output!" << std::endl;
+  //   return;
+  // }
 
   //Creates variables for change in each side info in inches (12.9590697 is circumference of wheel)
   DeltaL = ((double)(currentL - PreviousL) * 12.9590697) / tpr;
   DeltaR = ((double)(currentR - PreviousR) * 12.9590697) / tpr;
   DeltaB = ((double)(currentB - PreviousB) * 12.9590697) / tpr;
   
-  std::cout << "CurrentR: " << currentR << " | CurrentL: " << currentL << " | CurrentB: " << currentB << std::endl;
-  std::cout << "PreviousR: " << PreviousR << " | PreviousL: " << PreviousL << " | PreviousB: " << PreviousB << std::endl;
-  std::cout << "DeltaR: " << DeltaR << " | DeltaL: " << DeltaL << " | DeltaB: " << DeltaB << std::endl;
+  Theta = Gyro.heading(degrees) / 180 * Pi;
 
-  // std::cout << "DeltaL: " << DeltaL << " | currentL: " << currentL << " | " << "PreviousL: " << PreviousL << std::endl; 
+  double DeltaAverage = (DeltaL + DeltaR) / 2.0;
+  X += DeltaAverage * sin(Theta);
+  Y += DeltaAverage * cos(Theta);
+  X += DeltaB * sin(Theta + (Pi / 2.0));
+  Y += DeltaB * cos(Theta + (Pi / 2.0));
 
-  /*if (DeltaL + DeltaR + DeltaB > 1000)
-  {
-    PreviousL = currentL;
-    PreviousR = currentR;
-    PreviousB = currentB;
-    return;
-  }*/
+  //Odom heading is converting the radian value of Theta into degrees
+  OdomHeading = Theta * 57.295779513;
 
-  if (true)
-  {
-    // std::cout << "CurrentR: " << currentR << " | CurrentL: " << currentL << " | CurrentB: " << currentB << std::endl;
-    // std::cout << "PreviousR: " << PreviousR << " | PreviousL: " << PreviousL << " | PreviousB: " << PreviousB << std::endl;
+  //Converts values into newer values to allow for code to effectively work in next cycle
+  PreviousL = currentL;
+  PreviousR = currentR;
+  PreviousB = currentB;
 
-    if (DeltaR > 0 || DeltaL > 0 || DeltaB > 0){
-      std::cout << "CurrentR: " << currentR << " | CurrentL: " << currentL << " | CurrentB: " << currentB << std::endl;
-      std::cout << "PreviousR: " << PreviousR << " | PreviousL: " << PreviousL << " | PreviousB: " << PreviousB << std::endl;
-      std::cout << "DeltaR: " << DeltaR << " | DeltaL: " << DeltaL << " | DeltaB: " << DeltaB << std::endl;
-    }
-
-  }
-
-  //Determines the change in angle of the robot using the rotational change in each side
-  DeltaTheta = (DeltaR - DeltaL) / (SL + SR);
-
-  //Creates an if/else statement to prevent NaN values from appearing and causing issues with calculation
-  // if(DeltaTheta == 0) {  //If there is no change in angle
-  //   X += DeltaL * sin (Theta);
-  //   Y += DeltaL * cos (Theta);
-  //   X += DeltaB * cos (Theta + 1.57079633);
-  //   Y += DeltaB * sin (Theta + 1.57079633);
-
-  // //If there is a change in angle, it will calculate the changes in X,Y from chords of an arc/circle.
-  // } else {  //If the angle changes
-  //     SideChord = 2 * ((DeltaL / DeltaTheta) + SL) * sin (DeltaTheta / 2);
-  //     BackChord = 2 * ((DeltaB / DeltaTheta) + SS) * sin (DeltaTheta / 2);
-  //     DeltaYSide = SideChord * cos (Theta + (DeltaTheta / 2));
-  //     DeltaXSide = SideChord * sin (Theta + (DeltaTheta / 2));
-  //     DeltaXBack = BackChord * sin (Theta + (DeltaTheta / 2));
-  //     DeltaYBack = -BackChord * cos (Theta + (DeltaTheta / 2));
-  //     double DeltaAverage = DeltaL + DeltaR / 2.0;
-  //     X += DeltaAverage * sin (Theta);
-  //     Y += DeltaAverage * cos (Theta);
-  //     X += DeltaB * sin(Theta + (Pi / 2.0));
-  //     Y += DeltaB * cos(Theta + (Pi / 2.0));
-  //     Theta += DeltaTheta;
-  //   }
-    double DeltaAverage = (DeltaL + DeltaR) / 2.0;
-    X += DeltaAverage * sin (Theta);
-    Y += DeltaAverage * cos (Theta);
-    // X += DeltaB * sin(Theta + (Pi / 2.0));
-    // Y += DeltaB * cos(Theta + (Pi / 2.0));
-    Theta += DeltaTheta;
-
-    //Odom heading is converting the radian value of Theta into degrees
-    OdomHeading = Theta * 57.295779513;
-
-    //static bool currents_were_crazy = false;
-
-    // if(currentL + currentR + currentB > 20)
-    // {
-
-    //   currents_were_crazy = true;
-    //   std::cout << "Crazy currents" << std::endl;
-    //   std::cout << "CurrentR: " << currentR << " CurrentL: " << currentL << "currentB: " << currentB << std::endl;
-    // }
-
-    static bool x_was_crazy = false;
-    if ( X > 10 && !x_was_crazy)
-    {
-      x_was_crazy = true;
-      std::cout << "X jumped to " << X << " ! " << std::endl;
-      std::cout << "CurrentR: " << currentR << " CurrentL: " << currentL << "currentB: " << currentB << std::endl;
-      std::cout << "DeltaL: " << DeltaL << " DeltaR: " << DeltaR << " DeltaB: " << DeltaB << std::endl;
-      std::cout << "PreviousL: " << PreviousL << " PreviousR: " << PreviousR << " PreviousB: " << PreviousB << std::endl;
-    }
-
-    //Converts values into newer values to allow for code to effectively work in next cycle
-    PreviousL = currentL;
-    PreviousR = currentR;
-    PreviousB = currentB;
-    DeltaTheta = 0;
   /*--------------------GRAPHICS--------------------*/
     //Coordinates for each section of text
     int textadjustvalue = 55;
@@ -205,7 +138,7 @@ void TrackPOS() {
     Brain.Screen.setPenColor( vex::color( 191, 10, 48 ) );
     Brain.Screen.printAt(40,50 + textadjustvalue, "Y-Pos:%f",Y);
     Brain.Screen.setPenColor( vex::color( 141, 2, 31 ) );
-    Brain.Screen.printAt(40,80 + textadjustvalue, "Theta:%f",Theta);
+    Brain.Screen.printAt(40, 80 + textadjustvalue, "Theta:%f", Theta * 180 / Pi);
     Brain.Screen.setPenColor( vex::color( 83, 2, 1 ) );
     Brain.Screen.printAt(40,110 + textadjustvalue, "Angle:%f",X);
     Brain.Screen.setPenColor( vex::color( 255, 255, 255 ) );
@@ -289,11 +222,13 @@ void robotInit( void ) {
     Y = 0;
 
     std::cout << "Starting Values:(" << EncoderC.position(degrees) << ", " << EncoderE.position(degrees) << ", " << EncoderG.position(degrees) << ")" << std::endl;
+    
 }
 /*---------------------------------------------------------------------------*/
 /*                              Autonomous Task                              */
 /*---------------------------------------------------------------------------*/
 void autonomous( void ) {
+  
 
 }
 /*----------------------------------------------------------------------------*/
@@ -334,10 +269,10 @@ void usercontrol( void ) {
     // std::cout << "Running? X: " << X << " Y: " << Y << " Theta: " << Theta << std::endl;
 
     //provides power to the motors to allow for movement of robot for testing using controller
-    LeftBack.spin(vex::directionType::rev, Controller1.Axis3.value() - Controller1.Axis1.value(), vex::velocityUnits::pct);
-    LeftFront.spin(vex::directionType::rev, Controller1.Axis3.value() - Controller1.Axis1.value(), vex::velocityUnits::pct);
-    RightBack.spin(vex::directionType::fwd, Controller1.Axis3.value() + Controller1.Axis1.value(), vex::velocityUnits::pct);
-    RightFront.spin(vex::directionType::fwd, Controller1.Axis3.value() + Controller1.Axis1.value(), vex::velocityUnits::pct);
+    LeftBack.spin(vex::directionType::rev, Controller1.Axis3.value() + Controller1.Axis1.value(), vex::velocityUnits::pct);
+    LeftFront.spin(vex::directionType::rev, Controller1.Axis3.value() + Controller1.Axis1.value(), vex::velocityUnits::pct);
+    RightBack.spin(vex::directionType::fwd, Controller1.Axis3.value() - Controller1.Axis1.value(), vex::velocityUnits::pct);
+    RightFront.spin(vex::directionType::fwd, Controller1.Axis3.value() - Controller1.Axis1.value(), vex::velocityUnits::pct);
 
     //Calls the TrackPosition function
     TrackPOS();

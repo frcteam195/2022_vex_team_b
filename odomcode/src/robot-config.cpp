@@ -16,6 +16,7 @@ controller Controller1 = controller(primary);
 encoder EncoderC = encoder(Brain.ThreeWirePort.C);
 encoder EncoderE = encoder(Brain.ThreeWirePort.E);
 encoder EncoderG = encoder(Brain.ThreeWirePort.G);
+inertial Gyro = inertial(PORT16);
 
 // VEXcode generated functions
 // define variable for remote controller enable/disable
